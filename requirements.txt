@@ -1,0 +1,4 @@
+# Dipendenze opzionali (l'applicazione di base funziona con la sola libreria standard di Python e FFmpeg locale in bin/)
+pillow>=10.0.0
+pyinstaller>=6.0.0
+

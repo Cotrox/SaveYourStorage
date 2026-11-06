@@ -1,0 +1,13 @@
+Ctrx SaveStorage includes FFmpeg binaries in bin/.
+
+FFmpeg
+-------
+FFmpeg is licensed under the GNU General Public License version 2 or later.
+The source code and license information are available at:
+https://ffmpeg.org/download.html
+https://github.com/BtbN/FFmpeg-Builds
+
+The FFmpeg binaries are separate command-line processes and are not linked
+into the Ctrx SaveStorage application. The corresponding license and source
+information must be preserved when redistributing the binaries.
+

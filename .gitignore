@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# Build outputs
+build/
+dist/
+*.spec.bak
+
+# Local/downloaded artifacts
+bin/ffmpeg_download.zip
+bin/*.exe
+bin/*.dll
+*.log
+packaging/staging/
+packaging/output/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ctrx SaveStorage - Media Optimizer & Trimmer</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="winui-theme">
+  <!-- App Container -->
+  <div class="app-window">
+
+    <!-- Top Acrylic Navigation Bar -->
+    <header class="fluent-header">
+      <div class="header-branding">
+        <div class="app-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+            <path d="M12 12v9" />
+            <path d="m8 17 4 4 4-4" />
+          </svg>
+        </div>
+        <div class="branding-text">
+          <h1>Ctrx SaveStorage</h1>
+          <span class="subtext">Ottimizzatore Media & Video Trimmer Desktop</span>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-outline">
+          🔒 File Originali Intatti
+        </span>
+        <a href="https://www.paypal.com/paypalme/graficarulez" target="_blank" rel="noopener noreferrer"
+          class="btn-paypal-header" id="btnPaypalHeader" title="Dona su PayPal">
+          <span class="paypal-wallet">👛</span>
+          <span>Dona su PayPal</span>
+        </a>
+        <a href="https://ko-fi.com/cotrox" target="_blank" rel="noopener noreferrer" class="btn-kofi-header"
+          id="btnKofiHeader" title="Supporta Giuseppe Antonino Cotroneo su Ko-Fi">
+          <span class="kofi-cup">☕</span>
+          <span>Offri un caffè</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="fluent-main">
+
+      <!-- Selection & Drop Zone -->
+      <section class="section-card drop-zone-card" id="dropZone">
+        <div class="selection-actions">
+          <button type="button" class="btn btn-fluent-primary" id="btnPickFile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+              <polyline points="14 2 14 8 20 8" />
+              <path d="M12 18v-6" />
+              <path d="m9 15 3-3 3 3" />
+            </svg>
+            Carica Singolo File (Video / Foto)
+          </button>
+          <span class="or-divider">oppure</span>
+          <button type="button" class="btn btn-fluent-secondary" id="btnPickFolder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+            </svg>
+            Carica Intera Cartella (Batch)
+          </button>
+        </div>
+        <p class="drop-hint">Trascina qui qualsiasi video (MOV, MP4, MKV...) o immagine (PNG, JPG, HEIC...)</p>
+      </section>
+
+      <!-- Loaded Info Bar -->
+      <div class="loaded-banner" id="loadedBanner" style="display: none;">
+        <div class="banner-info">
+          <span class="banner-icon" id="targetTypeIcon">🎬</span>
+          <div class="banner-details">
+            <strong id="targetName">Nessun file selezionato</strong>
+            <span class="banner-meta" id="targetMeta">0 elementi | 0 MB</span>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-subtle" id="btnClearSelection" title="Rimuovi selezione">✕ Rimuovi</button>
+      </div>
+
+      <!-- Video Trimmer & Preview (Active only on Single Video) -->
+      <section class="section-card video-trimmer-card" id="videoTrimmerSection" style="display: none;">
+        <div class="card-header">
+          <div class="title-with-badge">
+            <h3>✂️ Trimming & Anteprima Video Interattiva</h3>
+            <span class="badge badge-accent">Attivo su file singolo</span>
+          </div>
+          <div class="trimmer-actions-top">
+            <button class="btn btn-sm btn-subtle" id="btnResetTrim">Ripristina Durata Completa</button>
+          </div>
+        </div>
+
+        <div class="video-preview-wrapper">
+          <div class="video-container">
+            <video id="previewPlayer" controls preload="metadata"></video>
+          </div>
+          <div class="video-info-strip">
+            <span id="playerCurrentTime">00:00:00</span>
+            <span class="divider">/</span>
+            <span id="playerTotalDuration">00:00:00</span>
+            <span class="resolution-pill" id="playerResolution">1920x1080</span>
+          </div>
+        </div>
+
+        <!-- Trimmer Controls -->
+        <div class="trimmer-controls">
+          <div class="trim-inputs-row">
+            <div class="trim-input-group">
+              <label for="trimStartTime">Punto Inizio (Start):</label>
+              <div class="input-with-button">
+                <input type="text" id="trimStartTime" value="00:00:00" placeholder="00:00:00">
+                <button type="button" class="btn btn-sm btn-fluent" id="btnSetCurrentAsStart"
+                  title="Usa secondo attuale del player">
+                  📍 Usa Corrente
+                </button>
+              </div>
+            </div>
+
+            <div class="trim-summary-badge">
+              <span class="label">Durata Ritaglio:</span>
+              <strong id="trimEffectiveDuration">00:00:00</strong>
+            </div>
+
+            <div class="trim-input-group">
+              <label for="trimEndTime">Punto Fine (End):</label>
+              <div class="input-with-button">
+                <input type="text" id="trimEndTime" value="00:00:00" placeholder="00:00:00">
+                <button type="button" class="btn btn-sm btn-fluent" id="btnSetCurrentAsEnd"
+                  title="Usa secondo attuale del player">
+                  📍 Usa Corrente
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dual Sliders / Visual Scrubber -->
+          <div class="scrubber-container">
+            <input type="range" id="sliderTrimStart" min="0" max="100" step="0.1" value="0">
+            <input type="range" id="sliderTrimEnd" min="0" max="100" step="0.1" value="100">
+          </div>
+
+          <div class="normal-speed-editor">
+            <div class="label-with-value">
+              <label>Intervalli a velocità normale:</label>
+              <span class="helper-text">Il resto del video userà la velocità selezionata.</span>
+            </div>
+            <div class="normal-speed-inputs">
+              <input type="text" id="normalRangeStart" value="00:00:00" placeholder="Inizio">
+              <button type="button" class="btn btn-sm btn-subtle" id="btnUseCurrentNormalStart">📍 Inizio corrente</button>
+              <input type="text" id="normalRangeEnd" value="00:00:00" placeholder="Fine">
+              <button type="button" class="btn btn-sm btn-subtle" id="btnUseCurrentNormalEnd">📍 Fine corrente</button>
+              <button type="button" class="btn btn-sm btn-fluent" id="btnAddNormalRange">＋ Aggiungi area normale</button>
+            </div>
+            <div class="normal-speed-list" id="normalSpeedList"></div>
+          </div>
+
+          <!-- Precise Frame Stepping & Shortcuts Hint -->
+          <div class="step-buttons-row">
+            <div class="step-group">
+              <span class="step-label">Passo Inizio:</span>
+              <button type="button" class="btn btn-sm btn-subtle" id="btnStartMinus1s">-1s</button>
+              <button type="button" class="btn btn-sm btn-subtle" id="btnStartMinus01s">-0.1s</button>
+              <button type="button" class="btn btn-sm btn-subtle" id="btnStartPlus01s">+0.1s</button>
+              <button type="button" class="btn btn-sm btn-subtle" id="btnStartPlus1s">+1s</button>
+            </div>
+            <div class="step-group">
+              <span class="step-label">Passo Fine:</span>
+              <button type="button" class="btn btn-sm btn-subtle" id="btnEndMinus1s">-1s</button>
+              <button type="button" class="btn btn-sm btn-subtle" id="btnEndMinus01s">-0.1s</button>
+              <button type="button" class="btn btn-sm btn-subtle" id="btnEndPlus01s">+0.1s</button>
+              <button type="button" class="btn btn-sm btn-subtle" id="btnEndPlus1s">+1s</button>
+            </div>
+          </div>
+
+          <div class="scrubber-hint">
+            Scorciatoie da tastiera: <strong>Spazio</strong> (Play/Pausa) | <strong>I</strong> (Imposta Inizio) |
+            <strong>O</strong> (Imposta Fine) | <strong>←/→</strong> (-1s / +1s)
+          </div>
+        </div>
+      </section>
+
+      <!-- Batch File Queue List (when folder or multiple items loaded) -->
+      <section class="section-card queue-card" id="queueSection" style="display: none;">
+        <div class="card-header">
+          <h3>📋 Coda File Rilevati (<span id="queueItemCount">0</span>)</h3>
+          <span class="queue-total-size" id="queueTotalSize">0 MB</span>
+        </div>
+        <div class="queue-table-wrapper">
+          <table class="fluent-table" id="queueTable">
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Tipo</th>
+                <th>Risoluzione</th>
+                <th>Dimensione Orig.</th>
+                <th>Stato</th>
+                <th>Risparmio</th>
+                <th style="width: 40px; text-align: right;">Azione</th>
+              </tr>
+            </thead>
+            <tbody id="queueTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Optimization Settings Dashboard (Grid) -->
+      <section class="settings-grid" id="settingsSection">
+
+        <!-- Destination Folder Card -->
+        <div class="fluent-card output-card">
+          <div class="card-header-small">
+            <h4>📁 Cartella di Destinazione Separata</h4>
+          </div>
+          <p class="card-desc">I tuoi file di origine non verranno mai modificati né sovrascritti.</p>
+          <div class="output-picker-row">
+            <input type="text" id="outputFolderPath" placeholder="Seleziona la cartella di output..." readonly>
+            <button type="button" class="btn btn-fluent" id="btnBrowseOutput">Sfoglia...</button>
+          </div>
+        </div>
+
+        <!-- Format Conversion Card -->
+        <div class="fluent-card">
+          <div class="card-header-small">
+            <h4>🔄 Conversione Formato</h4>
+          </div>
+          <div class="form-group">
+            <label for="formatSelect">Formato Video / Foto:</label>
+            <select id="formatSelect" class="fluent-select">
+              <option value="original" selected>Mantieni Formato Originale</option>
+              <optgroup label="Formati Video">
+                <option value="mp4">MP4 (Compatibilità universale H.264 / H.265)</option>
+                <option value="mov">MOV (Apple QuickTime)</option>
+                <option value="mkv">MKV (Matroska)</option>
+                <option value="webm">WebM (Ottimizzato per il Web)</option>
+                <option value="avi">AVI</option>
+                <option value="gif">GIF Animata</option>
+              </optgroup>
+              <optgroup label="Formati Immagine">
+                <option value="webp">WebP (Massimo risparmio fino all'80% di spazio)</option>
+                <option value="jpg">JPEG / JPG (Standard fotografico)</option>
+                <option value="png">PNG</option>
+                <option value="avif">AVIF (Alta efficienza di compressione)</option>
+              </optgroup>
+            </select>
+            <small class="helper-text">Supporta conversione rapida da .MOV a .MP4, da HEIC a WebP, ecc.</small>
+          </div>
+        </div>
+
+        <!-- Speedup & Audio Multiplier Card -->
+        <div class="fluent-card">
+          <div class="card-header-small">
+            <h4>⚡ Velocizzazione & Audio</h4>
+          </div>
+          <div class="form-group">
+            <label>Moltiplicatore di Velocità:</label>
+            <div class="pill-group" id="speedPills">
+              <button type="button" class="pill-btn active" data-speed="1.0">1x (Normale)</button>
+              <button type="button" class="pill-btn" data-speed="1.25">1.25x</button>
+              <button type="button" class="pill-btn" data-speed="1.5">1.5x</button>
+              <button type="button" class="pill-btn" data-speed="2.0">2x</button>
+              <button type="button" class="pill-btn" data-speed="3.0">3x</button>
+              <button type="button" class="pill-btn" data-speed="5.0">5x</button>
+              <button type="button" class="pill-btn" data-speed="8.0">8x</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Modalità Audio:</label>
+            <div class="radio-pill-group">
+              <label class="radio-pill">
+                <input type="radio" name="audioMode" value="keep_speed" checked>
+                <span>🔊 Velocizza Video & Audio Sincronizzato</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="audioMode" value="remove_audio">
+                <span>🔇 Rimuovi Audio (Muto - Risparmia Spazio)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quality & Upscaling Card -->
+        <div class="fluent-card">
+          <div class="card-header-small">
+            <h4>📉 Qualità Video & 🚀 Upscaling</h4>
+          </div>
+
+          <div class="form-group">
+            <label for="qualityPreset">Livello di Compressione / Spazio:</label>
+            <select id="qualityPreset" class="fluent-select">
+              <option value="balanced" selected>Bilanciato (H.265 - Risparmio 50-70% spazio consigliato)</option>
+              <option value="visually_lossless">Visivamente Lossless (Qualità identica, metadata puliti)</option>
+              <option value="high_compression">Massima Compressione (File ultraleggeri)</option>
+              <option value="lossless">Lossless Puro (CRF 0 - Zero compressione distruttiva)</option>
+              <option value="custom">Personalizzato (CRF manuale)</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="customCrfGroup" style="display: none;">
+            <label for="customCrfInput">Valore CRF personalizzato (18=Massima qualità, 35=Massima compressione):</label>
+            <input type="range" id="customCrfInput" min="16" max="38" value="26">
+            <span id="crfValueDisplay">26</span>
+          </div>
+
+          <div class="form-group">
+            <label for="scaleSelect">Risoluzione & Upscaling:</label>
+            <select id="scaleSelect" class="fluent-select">
+              <option value="original" selected>Risoluzione Originale</option>
+              <option value="720p">Ridimensiona a 720p HD (Intelligente Verticale/Orizzontale)</option>
+              <option value="1080p">Ridimensiona a 1080p Full HD (Intelligente Verticale/Orizzontale)</option>
+              <option value="25%">Riduci al 25% delle dimensioni originali</option>
+              <option value="50%">Riduci al 50% delle dimensioni originali</option>
+              <option value="75%">Riduci al 75% delle dimensioni originali</option>
+              <option value="upscale_2x">✨ Upscaling 2x HQ (Interpolazione Lanczos + Nitidezza)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Aspect Ratio, Orientation & Crop Card -->
+        <div class="fluent-card aspect-card" id="aspectCard">
+          <div class="card-header-small">
+            <h4>📐 Orientamento & Ritaglio Inquadratura</h4>
+          </div>
+          <p class="card-desc">Esporta in formato verticale (9:16) o orizzontale (16:9) senza bande nere o con ritaglio libero.</p>
+
+          <div class="form-group">
+            <label for="aspectSelect">Orientamento & Proporzioni Video:</label>
+            <select id="aspectSelect" class="fluent-select">
+              <option value="original" selected>📱/🖥️ Mantieni Proporzioni Originali (Zero bande nere, aspect ratio nativo)</option>
+              <option value="9:16">📱 Verticale 9:16 (TikTok, Instagram Reels, YouTube Shorts)</option>
+              <option value="16:9">🖥️ Orizzontale 16:9 (YouTube, TV, Schermi Desktop)</option>
+              <option value="1:1">⬛ Quadrato 1:1 (Post Feed Instagram/LinkedIn)</option>
+              <option value="4:5">📱 Verticale 4:5 (Post Instagram Ritratto)</option>
+              <option value="custom">✂️ Ritaglio Libero / Personalizzato (Coordinate e %)</option>
+            </select>
+          </div>
+
+          <!-- Fitting Mode (shown when aspect is not original) -->
+          <div class="form-group" id="aspectFitGroup" style="display: none;">
+            <label>Modalità di Adattamento:</label>
+            <div class="radio-pill-group">
+              <label class="radio-pill">
+                <input type="radio" name="aspectFit" value="crop_fill" checked>
+                <span>✂️ Riempi Schermo (Zero bande nere - Ritaglia ed elimina i bordi)</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="aspectFit" value="black_pad">
+                <span>Bande Nere (Letterbox / Mantieni intero fotogramma)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Framing / Offset slider (shown when crop_fill is active) -->
+          <div class="form-group" id="cropOffsetGroup" style="display: none;">
+            <div class="label-with-value">
+              <label for="cropOffsetSlider">Riposiziona Inquadratura:</label>
+              <span id="cropOffsetDisplay" class="badge badge-accent">Centro (50%)</span>
+            </div>
+            <input type="range" id="cropOffsetSlider" min="0" max="100" value="50" class="fluent-slider">
+            <div class="crop-preset-buttons">
+              <button type="button" class="btn btn-sm btn-subtle" id="btnCropStart">⬅️/⬆️ Inizio</button>
+              <button type="button" class="btn btn-sm btn-subtle active" id="btnCropCenter">🎯 Centro (50%)</button>
+              <button type="button" class="btn btn-sm btn-subtle" id="btnCropEnd">➡️/⬇️ Fine</button>
+            </div>
+            <small class="helper-text" id="cropOffsetText">Sposta il punto di ritaglio per inquadrare perfettamente il soggetto.</small>
+          </div>
+
+          <!-- Custom Crop Coordinates (shown when custom is selected) -->
+          <div class="custom-crop-grid" id="customCropGroup" style="display: none;">
+            <div class="form-group">
+              <label for="customCropW">Larghezza (%):</label>
+              <input type="number" id="customCropW" min="10" max="100" value="100" class="fluent-input-num">
+            </div>
+            <div class="form-group">
+              <label for="customCropH">Altezza (%):</label>
+              <input type="number" id="customCropH" min="10" max="100" value="100" class="fluent-input-num">
+            </div>
+            <div class="form-group">
+              <label for="customCropX">Posizione X (%):</label>
+              <input type="number" id="customCropX" min="0" max="90" value="0" class="fluent-input-num">
+            </div>
+            <div class="form-group">
+              <label for="customCropY">Posizione Y (%):</label>
+              <input type="number" id="customCropY" min="0" max="90" value="0" class="fluent-input-num">
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- Processing Progress & Statistics Area -->
+      <section class="section-card progress-card" id="progressCard" style="display: none;">
+        <div class="progress-header">
+          <div class="status-left">
+            <span class="spinner" id="progressSpinner"></span>
+            <strong id="progressStatusText">Elaborazione in corso...</strong>
+          </div>
+          <span class="progress-percent" id="progressPercent">0%</span>
+        </div>
+
+        <div class="fluent-progress-track">
+          <div class="fluent-progress-fill" id="progressBarFill" style="width: 0%;"></div>
+        </div>
+
+        <!-- Summary Statistics Cards -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-box">
+            <span class="stat-label">Elementi Elaborati</span>
+            <strong class="stat-value" id="statProcessedCount">0 / 0</strong>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Spazio Risparmiato</span>
+            <strong class="stat-value text-accent" id="statSavedBytes">0 MB</strong>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Percentuale Risparmio</span>
+            <strong class="stat-value text-success" id="statSavedPct">0%</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- Creator & Support Section -->
+      <section class="section-card creator-card">
+        <div class="creator-flex">
+          <div class="creator-left">
+            <div class="creator-avatar">
+              <img src="/assets/cotrox-avatar.png" alt="Giuseppe Antonino Cotroneo" class="creator-avatar-img" onerror="this.style.display='none'">
+            </div>
+            <div class="creator-info">
+              <h4>Giuseppe Antonino Cotroneo</h4>
+              <span class="creator-handle">@Cotrox</span>
+              <div class="creator-tags">
+                <span class="creator-tag creator-tag-developer">Developer</span>
+                <span class="creator-tag creator-tag-designer">Designer</span>
+              </div>
+              <p class="creator-bio"><strong>Biografia</strong><br>Developer e designer. Studente di ingegneria informatica presso l'Università della Calabria (UNICAL).</p>
+            </div>
+          </div>
+          <div class="creator-right">
+            <div class="creator-support-links">
+              <a href="https://ko-fi.com/cotrox" target="_blank" rel="noopener noreferrer" class="btn-kofi-main"
+                id="btnKofiCard">
+                <span class="kofi-icon">☕</span>
+                <strong>Supporta su Ko-fi</strong>
+              </a>
+              <a href="https://www.paypal.com/paypalme/graficarulez" target="_blank" rel="noopener noreferrer" class="btn-paypal-main"
+                id="btnPaypalCard">
+                <span class="paypal-wallet">👛</span>
+                <strong>Dona su PayPal</strong>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom Floating Action Bar -->
+      <footer class="fluent-bottom-bar">
+        <div class="bar-summary">
+          <span id="actionSummaryText">Seleziona uno o più file per iniziare</span>
+        </div>
+        <div class="bar-buttons">
+          <button type="button" class="btn btn-fluent-secondary" id="btnCancelProcess" style="display: none;">
+            ⛔ Interrompi
+          </button>
+          <button type="button" class="btn btn-fluent-secondary" id="btnOpenOutput" style="display: none;">
+            📂 Mostra File in Esplora Risorse
+          </button>
+          <button type="button" class="btn btn-fluent-primary btn-large" id="btnStartProcess" disabled>
+            🚀 Avvia Ottimizzazione
+          </button>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
