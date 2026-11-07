@@ -3,11 +3,11 @@
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   IgnorableNamespaces="uap">
-  <Identity Name="CtrxSaveStorage"
-            Publisher="CN=Ctrx SaveStorage"
+  <Identity Name="SaveYourStorage"
+            Publisher="CN=SaveYourStorage"
             Version="1.0.0.0" />
   <Properties>
-    <DisplayName>Ctrx SaveStorage</DisplayName>
+    <DisplayName>SaveYourStorage</DisplayName>
     <PublisherDisplayName>Giuseppe Antonino Cotroneo</PublisherDisplayName>
     <Description>Ottimizzatore media e video trimmer desktop.</Description>
     <Logo>Assets\StoreLogo.png</Logo>
@@ -22,10 +22,10 @@
   </Dependencies>
   <Applications>
     <Application Id="App"
-                 Executable="CtrxSaveStorage.exe"
+                 Executable="SaveYourStorage.exe"
                  EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements AppListEntry="default"
-                          DisplayName="Ctrx SaveStorage"
+                          DisplayName="SaveYourStorage"
                           Description="Ottimizzatore media e video trimmer desktop."
                           BackgroundColor="#18181C"
                           Square150x150Logo="Assets\Square150x150Logo.png"
@@ -33,4 +33,3 @@
     </Application>
   </Applications>
 </Package>
-

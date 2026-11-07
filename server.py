@@ -1,5 +1,5 @@
 """
-Local Desktop Server & API Backend for Ctrx SaveStorage.
+Local Desktop Server & API Backend for SaveYourStorage.
 Developed by Giuseppe Antonino Cotroneo (https://ko-fi.com/cotrox)
 
 Provides native Windows dialogs, media streaming with Range requests,
@@ -209,7 +209,7 @@ def open_folder_in_explorer(folder_path):
         return True
     return False
 
-class SaveStorageHTTPHandler(BaseHTTPRequestHandler):
+class SaveYourStorageHTTPHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         # Silence routine static asset logs, log only errors or important requests
         pass
@@ -447,9 +447,9 @@ class SaveStorageHTTPHandler(BaseHTTPRequestHandler):
                 return self.send_json({"error": "Nessun elemento da elaborare"}, status_code=400)
 
             if not output_dir:
-                # Default output directory: parent folder of first item + "_SaveStorage_Output"
+                # Default output directory: parent folder of first item + "_SaveYourStorage_Output"
                 first_item_path = Path(items[0]["path"])
-                output_dir = str(first_item_path.parent / "SaveStorage_Output")
+                output_dir = str(first_item_path.parent / "SaveYourStorage_Output")
 
             manager.reset(items, output_dir, options)
             thread = threading.Thread(target=manager.worker_loop, daemon=True)
@@ -467,8 +467,8 @@ class SaveStorageHTTPHandler(BaseHTTPRequestHandler):
 
 def run_server(port=5678):
     server_address = ('127.0.0.1', port)
-    httpd = HTTPServer(server_address, SaveStorageHTTPHandler)
-    print(f"[Ctrx SaveStorage] Server desktop attivo su http://127.0.0.1:{port}")
+    httpd = HTTPServer(server_address, SaveYourStorageHTTPHandler)
+    print(f"[SaveYourStorage] Server desktop attivo su http://127.0.0.1:{port}")
     httpd.serve_forever()
 
 if __name__ == "__main__":

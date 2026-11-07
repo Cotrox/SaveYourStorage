@@ -1,4 +1,4 @@
-Ctrx SaveStorage includes FFmpeg binaries in bin/.
+SaveYourStorage includes FFmpeg binaries in bin/.
 
 FFmpeg
 -------
@@ -8,6 +8,5 @@ https://ffmpeg.org/download.html
 https://github.com/BtbN/FFmpeg-Builds
 
 The FFmpeg binaries are separate command-line processes and are not linked
-into the Ctrx SaveStorage application. The corresponding license and source
+into the SaveYourStorage application. The corresponding license and source
 information must be preserved when redistributing the binaries.
-

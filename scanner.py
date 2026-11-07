@@ -1,5 +1,5 @@
 """
-File and Media Scanner for Ctrx SaveStorage.
+File and Media Scanner for SaveYourStorage.
 Developed by Giuseppe Antonino Cotroneo (https://ko-fi.com/cotrox)
 
 Scans single files or entire folders to collect media metadata.

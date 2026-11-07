@@ -1,10 +1,10 @@
 @echo off
-title Ctrx SaveStorage - Media Optimizer & Trimmer
+title SaveYourStorage - Media Optimizer & Trimmer
 chcp 65001 >nul
 cd /d "%~dp0"
 
 echo ========================================================
-echo        Ctrx SaveStorage - by Giuseppe Antonino Cotroneo
+echo        SaveYourStorage - by Giuseppe Antonino Cotroneo
 echo ========================================================
 echo.
 

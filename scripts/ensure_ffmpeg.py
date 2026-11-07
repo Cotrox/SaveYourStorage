@@ -30,7 +30,7 @@ def download_and_extract_ffmpeg():
     zip_path = BIN_DIR / "ffmpeg_download.zip"
 
     print("=======================================================")
-    print(" [Ctrx SaveStorage] Installazione automatica FFmpeg...")
+    print(" [SaveYourStorage] Installazione automatica FFmpeg...")
     print("=======================================================")
     print(f"Scaricamento da: {FFMPEG_URL}")
 

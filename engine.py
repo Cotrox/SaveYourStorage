@@ -1,5 +1,5 @@
 """
-FFmpeg Conversion & Optimization Engine for Ctrx SaveStorage.
+FFmpeg Conversion & Optimization Engine for SaveYourStorage.
 Developed by Giuseppe Antonino Cotroneo (https://ko-fi.com/cotrox)
 
 Handles video speedup, trimming, format conversion, compression, and upscaling.

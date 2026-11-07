@@ -1,22 +1,29 @@
 @echo off
-title Ctrx SaveStorage - Compilatore EXE
+title SaveYourStorage - Compilatore EXE
 chcp 65001 >nul
 cd /d "%~dp0"
 
 echo ========================================================
-echo   Ctrx SaveStorage - Build EXE (by Giuseppe Antonino Cotroneo)
+echo   SaveYourStorage - Build EXE (by Giuseppe Antonino Cotroneo)
 echo ========================================================
 echo.
 
-pip show pyinstaller >nul 2>&1
-if %errorlevel% neq 0 (
+python -m pip show pyinstaller >nul 2>&1
+if errorlevel 1 (
     echo [INFO] Installazione di PyInstaller in corso...
-    pip install pyinstaller
+    python -m pip install pyinstaller
+    if errorlevel 1 goto :build_error
+)
+
+if exist "dist\SaveYourStorage" (
+    echo [INFO] Rimozione della build precedente...
+    rmdir /s /q "dist\SaveYourStorage"
+    if errorlevel 1 goto :build_error
 )
 
 echo [INFO] Compilazione in corso con PyInstaller...
-python -m PyInstaller --noconfirm --onedir --windowed ^
-    --name "CtrxSaveStorage" ^
+python -m PyInstaller --noconfirm --clean --onedir --windowed ^
+    --name "SaveYourStorage" ^
     --icon "assets\icon.ico" ^
     --add-data "web;web" ^
     --add-data "bin;bin" ^
@@ -25,14 +32,24 @@ python -m PyInstaller --noconfirm --onedir --windowed ^
     --add-data "engine.py;." ^
     server.py
 
-if exist "dist\CtrxSaveStorage\CtrxSaveStorage.exe" (
+if errorlevel 1 goto :build_error
+
+if exist "dist\SaveYourStorage\SaveYourStorage.exe" (
     echo.
     echo ========================================================
     echo  COMPILAZIONE COMPLETATA CON SUCCESSO!
-    echo  Troverai il software in: dist\CtrxSaveStorage\
+    echo  Troverai il software in: dist\SaveYourStorage\
     echo ========================================================
+    pause
+    exit /b 0
 ) else (
-    echo [ERRORE] Compilazione fallita.
+    goto :build_error
 )
+
+:build_error
+echo.
+echo [ERRORE] Compilazione fallita. Controlla gli errori riportati sopra.
+pause
+exit /b 1
 
 pause

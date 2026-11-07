@@ -1,5 +1,5 @@
 """
-Asset Generator for Ctrx SaveStorage
+Asset Generator for SaveYourStorage
 Generates PNG, ICO, and Favicon assets from the header SVG icon.
 Developed by Giuseppe Antonino Cotroneo (https://ko-fi.com/cotrox)
 """
@@ -41,7 +41,7 @@ SVG_TEMPLATE = """<svg xmlns="http://www.w3.org/2000/svg" width="512" height="51
 
 def generate_all():
     print("==================================================")
-    print(" Generazione Asset Icona & Favicon Ctrx SaveStorage")
+    print(" Generazione Asset Icona & Favicon SaveYourStorage")
     print("==================================================")
 
     # 1. Save master SVG

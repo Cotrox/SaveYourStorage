@@ -1,6 +1,6 @@
 param(
     [string]$Version = "1.0.0",
-    [string]$Publisher = "CN=Ctrx SaveStorage",
+    [string]$Publisher = "CN=SaveYourStorage",
     [string]$MakeAppx = "",
     [string]$SignTool = "",
     [string]$Certificate = ""
@@ -8,11 +8,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
-$source = Join-Path $root "dist\CtrxSaveStorage"
+$source = Join-Path $root "dist\SaveYourStorage"
 $staging = Join-Path $PSScriptRoot "staging"
 $output = Join-Path $PSScriptRoot "output"
 
-if (-not (Test-Path (Join-Path $source "CtrxSaveStorage.exe"))) {
+if (-not (Test-Path (Join-Path $source "SaveYourStorage.exe"))) {
     throw "Build non trovato. Esegui prima build_exe.bat."
 }
 
@@ -38,7 +38,7 @@ $manifest = $manifest -replace 'Publisher="[^"]+"', ('Publisher="' + $Publisher 
 $manifest = $manifest -replace 'Version="1\.0\.0\.0"', ('Version="' + ($Version -replace '^v', '') + '.0"')
 Set-Content (Join-Path $staging "AppxManifest.xml") $manifest -Encoding utf8
 
-$msix = Join-Path $output "CtrxSaveStorage.msix"
+$msix = Join-Path $output "SaveYourStorage.msix"
 Remove-Item $msix -Force -ErrorAction SilentlyContinue
 & $MakeAppx pack /d $staging /p $msix /o
 if ($LASTEXITCODE -ne 0) { throw "Creazione MSIX fallita." }

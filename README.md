@@ -1,4 +1,4 @@
-# 🚀 Ctrx SaveStorage — Media Optimizer & Video Trimmer Desktop (WinUI 3)
+# 🚀 SaveYourStorage — Media Optimizer & Video Trimmer Desktop (WinUI 3)
 
 [![Support Giuseppe Antonino Cotroneo on Ko-Fi](https://img.shields.io/badge/Ko--Fi-Support%20Giuseppe%20Antonino%20Cotroneo-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/cotrox)
 
@@ -8,7 +8,7 @@ Un software desktop moderno, minimale e ad alte prestazioni per Windows con este
 
 ## ☕ Supporta il Progetto
 
-Se trovi **Ctrx SaveStorage** utile per il tuo lavoro quotidiano o per liberare preziosi gigabyte di spazio sui tuoi dischi, puoi supportare direttamente lo sviluppo offrendo un caffè:
+Se trovi **SaveYourStorage** utile per il tuo lavoro quotidiano o per liberare preziosi gigabyte di spazio sui tuoi dischi, puoi supportare direttamente lo sviluppo offrendo un caffè:
 
 👉 **[Supporta Giuseppe Antonino Cotroneo su Ko-fi](https://ko-fi.com/cotrox)**
 
@@ -49,7 +49,7 @@ Il tuo supporto consente di mantenere il software costantemente aggiornato, grat
 ## 📂 Struttura del Progetto
 
 ```text
-ctrx-save-storage/
+SaveYourStorage/
 ├── bin/
 │   ├── ffmpeg.exe         # Binario locale, scaricato durante la build/release
 │   └── ffprobe.exe        # Binario locale per l'ispezione dei metadati multimediali
@@ -89,7 +89,7 @@ Il programma si aprirà istantaneamente in una **finestra desktop nativa** senza
 ### Metodo 2: Compilazione in file `.exe` autonomo
 Se desideri creare un file eseguibile `.exe` distribuibile:
 1. Fai doppio click su `build_exe.bat`.
-2. Troverai l'eseguibile compilato all'interno della cartella `dist\CtrxSaveStorage\`.
+2. Troverai l'eseguibile compilato all'interno della cartella `dist\SaveYourStorage\`.
 
 ---
 

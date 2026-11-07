@@ -1,5 +1,5 @@
 /**
- * Ctrx SaveStorage - Frontend Logic
+ * SaveYourStorage - Frontend Logic
  * Modern WinUI 3 interactive controller
  */
 
@@ -239,7 +239,7 @@ function handleScannedData(data) {
   // Set default output dir
   const firstPath = state.items[0].path;
   const parentFolder = firstPath.substring(0, Math.max(firstPath.lastIndexOf("/"), firstPath.lastIndexOf("\\")));
-  state.outputDir = parentFolder + "\\SaveStorage_Output";
+  state.outputDir = parentFolder + "\\SaveYourStorage_Output";
   elements.outputFolderPath.value = state.outputDir;
 
   // Show Loaded Banner
