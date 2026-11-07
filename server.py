@@ -27,13 +27,55 @@ from engine import MediaEngine
 
 # App Directory
 if getattr(sys, 'frozen', False):
-    BASE_DIR = Path(sys._MEIPASS)
+    exe_dir = Path(sys.executable).resolve().parent
+    meipass = Path(getattr(sys, '_MEIPASS', exe_dir)).resolve()
+    if (meipass / "web").exists():
+        BASE_DIR = meipass
+    elif (exe_dir / "web").exists():
+        BASE_DIR = exe_dir
+    elif (exe_dir / "_internal" / "web").exists():
+        BASE_DIR = exe_dir / "_internal"
+    else:
+        BASE_DIR = meipass
 else:
     BASE_DIR = Path(__file__).resolve().parent
 
+# Ensure WEB_DIR, ASSETS_DIR, BIN_DIR find the actual folders
 WEB_DIR = BASE_DIR / "web"
+if not WEB_DIR.exists():
+    for cand in [
+        Path(getattr(sys, '_MEIPASS', '')).resolve() / "web" if getattr(sys, 'frozen', False) else None,
+        Path(sys.executable).resolve().parent / "web" if getattr(sys, 'frozen', False) else None,
+        Path(sys.executable).resolve().parent / "_internal" / "web" if getattr(sys, 'frozen', False) else None,
+        Path(__file__).resolve().parent / "web"
+    ]:
+        if cand and cand.exists():
+            WEB_DIR = cand
+            break
+
 ASSETS_DIR = BASE_DIR / "assets"
+if not ASSETS_DIR.exists():
+    for cand in [
+        Path(getattr(sys, '_MEIPASS', '')).resolve() / "assets" if getattr(sys, 'frozen', False) else None,
+        Path(sys.executable).resolve().parent / "assets" if getattr(sys, 'frozen', False) else None,
+        Path(sys.executable).resolve().parent / "_internal" / "assets" if getattr(sys, 'frozen', False) else None,
+        Path(__file__).resolve().parent / "assets"
+    ]:
+        if cand and cand.exists():
+            ASSETS_DIR = cand
+            break
+
 BIN_DIR = BASE_DIR / "bin"
+if not BIN_DIR.exists():
+    for cand in [
+        Path(getattr(sys, '_MEIPASS', '')).resolve() / "bin" if getattr(sys, 'frozen', False) else None,
+        Path(sys.executable).resolve().parent / "bin" if getattr(sys, 'frozen', False) else None,
+        Path(sys.executable).resolve().parent / "_internal" / "bin" if getattr(sys, 'frozen', False) else None,
+        Path(__file__).resolve().parent / "bin"
+    ]:
+        if cand and cand.exists():
+            BIN_DIR = cand
+            break
 MANAGED_COMPONENTS_DIR = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "SaveYourStorage" / "components"
 FFMPEG_URL = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
 

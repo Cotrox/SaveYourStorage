@@ -47,10 +47,6 @@ class MediaEngine:
 
     def locate_binaries(self):
         """Finds FFmpeg and FFprobe from managed, bundled, or system locations."""
-        if getattr(sys, 'frozen', False):
-            base_dir = Path(sys._MEIPASS)
-        else:
-            base_dir = Path(__file__).resolve().parent
         filename = lambda name: name + (".exe" if os.name == "nt" else "")
         managed_dir = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "SaveYourStorage" / "components"
         
@@ -68,7 +64,19 @@ class MediaEngine:
                 "uninstalled": True
             }
 
-        locations = (managed_dir, base_dir / "bin")
+        if getattr(sys, 'frozen', False):
+            base_dir = Path(getattr(sys, '_MEIPASS', Path(sys.executable).parent))
+            exe_dir = Path(sys.executable).resolve().parent
+            locations = (
+                managed_dir,
+                base_dir / "bin",
+                exe_dir / "bin",
+                exe_dir / "_internal" / "bin",
+                Path(__file__).resolve().parent / "bin"
+            )
+        else:
+            base_dir = Path(__file__).resolve().parent
+            locations = (managed_dir, base_dir / "bin")
 
         for directory in locations:
             candidate = directory / filename("ffmpeg")

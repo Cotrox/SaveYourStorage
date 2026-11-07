@@ -23,7 +23,8 @@ if not exist "bin\ffmpeg.exe" (
     python scripts\ensure_ffmpeg.py
 )
 
-:: 3. Kill any previously hanging server on port 5678
+:: 3. Kill any previously hanging server on port 5678 or running instance
+taskkill /f /im SaveYourStorage.exe >nul 2>&1
 for /f "tokens=5" %%a in ('netstat -aon ^| find ":5678" ^| find "LISTENING"') do (
     taskkill /f /pid %%a >nul 2>&1
 )
@@ -32,8 +33,15 @@ for /f "tokens=5" %%a in ('netstat -aon ^| find ":5678" ^| find "LISTENING"') do
 echo [INFO] Avvio server desktop locale su http://127.0.0.1:5678...
 start /b python server.py 5678
 
-:: Wait a brief second for server startup
+:: Attendi che il server sia pronto
+set RETRIES=0
+:wait_server
 timeout /t 1 /nobreak >nul
+netstat -aon | find ":5678" | find "LISTENING" >nul 2>&1
+if %errorlevel% equ 0 goto :server_ready
+set /a RETRIES+=1
+if %RETRIES% lss 6 goto :wait_server
+:server_ready
 
 :: 5. Launch in Microsoft Edge App Mode (WinUI borderless desktop window)
 set "EDGE_PATH=%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"

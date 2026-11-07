@@ -8,6 +8,13 @@ echo   SaveYourStorage - Build EXE (by Giuseppe Antonino Cotroneo)
 echo ========================================================
 echo.
 
+echo [INFO] Chiusura di eventuali istanze aperte dell'app...
+taskkill /f /im SaveYourStorage.exe >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -aon ^| find ":5678" ^| find "LISTENING"') do (
+    taskkill /f /pid %%a >nul 2>&1
+)
+timeout /t 1 /nobreak >nul
+
 python -m pip show pyinstaller >nul 2>&1
 if errorlevel 1 (
     echo [INFO] Installazione di PyInstaller in corso...
@@ -17,14 +24,14 @@ if errorlevel 1 (
 
 if exist "dist\SaveYourStorage" (
     echo [INFO] Rimozione della build precedente...
-    rmdir /s /q "dist\SaveYourStorage"
-    if errorlevel 1 goto :build_error
+    del /f /s /q "dist\SaveYourStorage\*" >nul 2>&1
+    for /d %%p in ("dist\SaveYourStorage\*") do rmdir /s /q "%%p" >nul 2>&1
+    rmdir /s /q "dist\SaveYourStorage" 2>nul
 )
 
 if exist "build\SaveYourStorage" (
     echo [INFO] Rimozione degli artefatti temporanei...
-    rmdir /s /q "build\SaveYourStorage"
-    if errorlevel 1 goto :build_error
+    rmdir /s /q "build\SaveYourStorage" 2>nul
 )
 
 echo [INFO] Compilazione in corso con PyInstaller...
