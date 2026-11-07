@@ -87,12 +87,11 @@ SaveYourStorage/
 
 ## 🚀 Come Avviare l'Applicazione
 
-L'eseguibile portabile contiene già FFmpeg e FFprobe: chi scarica ed esegue
-`dist\SaveYourStorage\SaveYourStorage.exe` non deve installare manualmente
-questi componenti. Al primo avvio l'app ne verifica comunque la presenza.
-Dall'icona ⚙️ in alto a destra è possibile aprire le impostazioni, reinstallare
-i componenti con il consenso dell'utente oppure rimuoverli. Se non sono
-disponibili, l'app mostra un avviso e impedisce l'avvio dell'elaborazione.
+### ⚙️ Gestione Componenti FFmpeg & FFprobe (Onboarding & Impostazioni)
+- **Eseguibile portabile (.exe)**: L'eseguibile portabile contiene già FFmpeg e FFprobe inclusi. Chi scarica ed esegue `SaveYourStorage.exe` può usarlo immediatamente senza alcuna configurazione manuale.
+- **Wizard di Onboarding con richiesta di consenso**: Se l'app viene avviata in un ambiente in cui i componenti non sono presenti (o se sono stati disinstallati), compare un wizard di primo avvio che spiega in modo chiaro perché FFmpeg e FFprobe siano fondamentali e richiede il consenso esplicito dell'utente prima di scaricarli e configurarli automaticamente in locale.
+- **Pannello Impostazioni (icona ⚙️)**: Accessibile in qualsiasi momento dalla barra superiore (in alto a destra, accanto al pulsante Ko-Fi), mostra lo stato di FFmpeg e FFprobe con la relativa provenienza, permette di reinstallarli/aggiornarli con barra di avanzamento del download in tempo reale, oppure di disinstallarli.
+- **Segnalazione e Notifica all'avvio**: Se i componenti sono disinstallati, sotto ciascuno di essi compare l'avviso che la reinstallazione è necessaria per il corretto funzionamento. Qualsiasi tentativo di avviare il processo di ottimizzazione notificherà all'utente l'assenza dei componenti con un dialog di avviso e il pulsante per installarli all'istante.
 
 ### Metodo 1: Avvio Rapido (.bat) — Consigliato
 Fai doppio click su:
