@@ -115,8 +115,296 @@ const elements = {
   actionSummaryText: document.getElementById("actionSummaryText"),
   btnCancelProcess: document.getElementById("btnCancelProcess"),
   btnOpenOutput: document.getElementById("btnOpenOutput"),
-  btnStartProcess: document.getElementById("btnStartProcess")
+  btnStartProcess: document.getElementById("btnStartProcess"),
+
+  // Modals & Navigation
+  btnSettings: document.getElementById("btnSettings"),
+  btnCloseSettings: document.getElementById("btnCloseSettings"),
+  settingsModal: document.getElementById("settingsModal"),
+  componentAlert: document.getElementById("componentAlert"),
+  componentAlertText: document.getElementById("componentAlertText"),
+  btnAlertOpenSettings: document.getElementById("btnAlertOpenSettings"),
+
+  // Onboarding Wizard
+  onboardingModal: document.getElementById("onboardingModal"),
+  btnCloseOnboarding: document.getElementById("btnCloseOnboarding"),
+  btnOnboardingConsent: document.getElementById("btnOnboardingConsent"),
+  btnOnboardingSkip: document.getElementById("btnOnboardingSkip"),
+  onboardingFfmpegStatus: document.getElementById("onboardingFfmpegStatus"),
+  onboardingFfprobeStatus: document.getElementById("onboardingFfprobeStatus"),
+  onboardingFfmpegIndicator: document.getElementById("onboardingFfmpegIndicator"),
+  onboardingFfprobeIndicator: document.getElementById("onboardingFfprobeIndicator"),
+  onboardingProgressBox: document.getElementById("onboardingProgressBox"),
+  onboardingProgressMsg: document.getElementById("onboardingProgressMsg"),
+  onboardingProgressPct: document.getElementById("onboardingProgressPct"),
+  onboardingProgressFill: document.getElementById("onboardingProgressFill"),
+
+  // Settings Modal
+  btnInstallComponents: document.getElementById("btnInstallComponents"),
+  btnUninstallComponents: document.getElementById("btnUninstallComponents"),
+  settingsProgressBox: document.getElementById("settingsProgressBox"),
+  settingsProgressMsg: document.getElementById("settingsProgressMsg"),
+  settingsProgressPct: document.getElementById("settingsProgressPct"),
+  settingsProgressFill: document.getElementById("settingsProgressFill"),
+  ffmpegBadge: document.getElementById("ffmpegBadge"),
+  ffprobeBadge: document.getElementById("ffprobeBadge"),
+  ffmpegPath: document.getElementById("ffmpegPath"),
+  ffprobePath: document.getElementById("ffprobePath"),
+  ffmpegWarning: document.getElementById("ffmpegWarning"),
+  ffprobeWarning: document.getElementById("ffprobeWarning"),
+  ffmpegIndicator: document.getElementById("ffmpegIndicator"),
+  ffprobeIndicator: document.getElementById("ffprobeIndicator"),
+
+  // Missing components dialog
+  missingModal: document.getElementById("missingModal"),
+  btnCloseMissing: document.getElementById("btnCloseMissing"),
+  btnDismissMissing: document.getElementById("btnDismissMissing"),
+  btnInstallFromMissing: document.getElementById("btnInstallFromMissing")
 };
+
+let componentsAvailable = false;
+let installPollTimer = null;
+
+function renderComponentStatus(data) {
+  componentsAvailable = Boolean(data.available);
+
+  // Settings Modal - FFmpeg
+  if (data.ffmpeg && data.ffmpeg.installed) {
+    const src = data.ffmpeg.source === "bundled" ? "Integrato" : (data.ffmpeg.source === "managed" ? "Installato" : "Nel Sistema");
+    elements.ffmpegBadge.textContent = src;
+    elements.ffmpegBadge.className = "badge badge-accent";
+    elements.ffmpegBadge.style.color = "";
+    elements.ffmpegPath.textContent = data.ffmpeg.path || "Disponibile";
+    elements.ffmpegWarning.style.display = "none";
+    elements.ffmpegIndicator.className = "component-indicator is-installed";
+  } else {
+    elements.ffmpegBadge.textContent = "Non installato";
+    elements.ffmpegBadge.className = "badge";
+    elements.ffmpegBadge.style.color = "#ff8585";
+    elements.ffmpegPath.textContent = "Componente assente o disinstallato";
+    elements.ffmpegWarning.style.display = "block";
+    elements.ffmpegIndicator.className = "component-indicator is-missing";
+  }
+
+  // Settings Modal - FFprobe
+  if (data.ffprobe && data.ffprobe.installed) {
+    const src = data.ffprobe.source === "bundled" ? "Integrato" : (data.ffprobe.source === "managed" ? "Installato" : "Nel Sistema");
+    elements.ffprobeBadge.textContent = src;
+    elements.ffprobeBadge.className = "badge badge-accent";
+    elements.ffprobeBadge.style.color = "";
+    elements.ffprobePath.textContent = data.ffprobe.path || "Disponibile";
+    elements.ffprobeWarning.style.display = "none";
+    elements.ffprobeIndicator.className = "component-indicator is-installed";
+  } else {
+    elements.ffprobeBadge.textContent = "Non installato";
+    elements.ffprobeBadge.className = "badge";
+    elements.ffprobeBadge.style.color = "#ff8585";
+    elements.ffprobePath.textContent = "Componente assente o disinstallato";
+    elements.ffprobeWarning.style.display = "block";
+    elements.ffprobeIndicator.className = "component-indicator is-missing";
+  }
+
+  // Settings Buttons
+  const isInstalling = Boolean(data.installer && data.installer.is_installing);
+  elements.btnUninstallComponents.disabled = !componentsAvailable || isInstalling;
+  elements.btnInstallComponents.disabled = isInstalling;
+  elements.btnInstallComponents.textContent = componentsAvailable ? "Reinstalla / Aggiorna componenti" : "Installa componenti ora";
+
+  // Onboarding Modal
+  if (elements.onboardingFfmpegStatus) {
+    elements.onboardingFfmpegStatus.textContent = data.ffmpeg?.installed ? "Installato e pronto" : "In attesa di installazione";
+    elements.onboardingFfmpegIndicator.className = `component-indicator ${data.ffmpeg?.installed ? "is-installed" : "is-missing"}`;
+  }
+  if (elements.onboardingFfprobeStatus) {
+    elements.onboardingFfprobeStatus.textContent = data.ffprobe?.installed ? "Installato e pronto" : "In attesa di installazione";
+    elements.onboardingFfprobeIndicator.className = `component-indicator ${data.ffprobe?.installed ? "is-installed" : "is-missing"}`;
+  }
+
+  // Top Alert Banner
+  if (!componentsAvailable) {
+    elements.componentAlert.style.display = "flex";
+    elements.componentAlertText.textContent = "FFmpeg e FFprobe non sono disponibili. È necessaria l'installazione per consentire l'elaborazione dei file.";
+  } else {
+    elements.componentAlert.style.display = "none";
+  }
+}
+
+async function refreshComponentStatus(isInitial = false) {
+  try {
+    const response = await fetch("/api/system-info");
+    const data = await response.json();
+    renderComponentStatus(data);
+
+    if (isInitial && !componentsAvailable) {
+      const skipped = sessionStorage.getItem("sys_onboarding_skipped");
+      if (skipped !== "1") {
+        elements.onboardingModal.style.display = "flex";
+      }
+    }
+  } catch (error) {
+    console.error("Impossibile verificare lo stato dei componenti:", error);
+  }
+}
+
+function startInstallPoll(mode = "settings") {
+  if (installPollTimer) clearInterval(installPollTimer);
+
+  const isSettings = mode === "settings";
+  const progressBox = isSettings ? elements.settingsProgressBox : elements.onboardingProgressBox;
+  const progressMsg = isSettings ? elements.settingsProgressMsg : elements.onboardingProgressMsg;
+  const progressPct = isSettings ? elements.settingsProgressPct : elements.onboardingProgressPct;
+  const progressFill = isSettings ? elements.settingsProgressFill : elements.onboardingProgressFill;
+
+  progressBox.style.display = "block";
+  progressFill.style.width = "5%";
+  progressPct.textContent = "5%";
+  progressMsg.textContent = "Avvio installazione in corso...";
+
+  elements.btnInstallComponents.disabled = true;
+  elements.btnUninstallComponents.disabled = true;
+  elements.btnOnboardingConsent.disabled = true;
+
+  installPollTimer = setInterval(async () => {
+    try {
+      const res = await fetch("/api/install-status");
+      const data = await res.json();
+      const inst = data.installer || {};
+
+      if (inst.is_installing || inst.status === "downloading" || inst.status === "extracting") {
+        const pct = Math.max(5, Math.min(100, Math.round(inst.progress || 0)));
+        progressFill.style.width = `${pct}%`;
+        progressPct.textContent = `${pct}%`;
+        progressMsg.textContent = inst.message || "Installazione in corso...";
+      } else if (inst.status === "completed") {
+        clearInterval(installPollTimer);
+        installPollTimer = null;
+        progressFill.style.width = "100%";
+        progressPct.textContent = "100%";
+        progressMsg.textContent = "✓ " + (inst.message || "Installazione completata!");
+
+        renderComponentStatus(data);
+        elements.btnInstallComponents.disabled = false;
+        elements.btnUninstallComponents.disabled = false;
+        elements.btnOnboardingConsent.disabled = false;
+
+        setTimeout(() => {
+          progressBox.style.display = "none";
+          if (elements.onboardingModal.style.display === "flex") {
+            elements.onboardingModal.style.display = "none";
+          }
+          if (elements.missingModal.style.display === "flex") {
+            elements.missingModal.style.display = "none";
+          }
+        }, 1200);
+      } else if (inst.status === "error") {
+        clearInterval(installPollTimer);
+        installPollTimer = null;
+        progressMsg.textContent = `Errore: ${inst.message || "Errore sconosciuto"}`;
+        progressFill.style.background = "#ff6b6b";
+        elements.btnInstallComponents.disabled = false;
+        elements.btnUninstallComponents.disabled = false;
+        elements.btnOnboardingConsent.disabled = false;
+      }
+    } catch (e) {
+      console.error("Poll install status error:", e);
+    }
+  }, 350);
+}
+
+async function triggerInstall(mode = "settings") {
+  try {
+    const res = await fetch("/api/install-components", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({})
+    });
+    startInstallPoll(mode);
+  } catch (err) {
+    alert("Errore avvio installazione: " + err.message);
+  }
+}
+
+async function triggerUninstall() {
+  if (state.isProcessing) {
+    alert("Impossibile disinstallare i componenti mentre un'elaborazione è in corso.");
+    return;
+  }
+  const confirmed = confirm(
+    "Sei sicuro di voler disinstallare i componenti FFmpeg e FFprobe?\n\n" +
+    "L'elaborazione dei video e delle foto non sarà possibile finché non verranno reinstallati."
+  );
+  if (!confirmed) return;
+
+  elements.btnUninstallComponents.disabled = true;
+  elements.btnInstallComponents.disabled = true;
+
+  try {
+    const res = await fetch("/api/uninstall-components", { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Operazione non riuscita");
+    renderComponentStatus(data.components);
+  } catch (err) {
+    alert("Errore rimozione componenti: " + err.message);
+  } finally {
+    elements.btnUninstallComponents.disabled = false;
+    elements.btnInstallComponents.disabled = false;
+  }
+}
+
+// Modal open/close listeners
+elements.btnSettings.addEventListener("click", () => {
+  elements.settingsModal.style.display = "flex";
+  refreshComponentStatus();
+});
+elements.btnCloseSettings.addEventListener("click", () => {
+  elements.settingsModal.style.display = "none";
+});
+elements.btnAlertOpenSettings.addEventListener("click", () => {
+  elements.settingsModal.style.display = "flex";
+  refreshComponentStatus();
+});
+
+elements.btnCloseOnboarding.addEventListener("click", () => {
+  elements.onboardingModal.style.display = "none";
+  sessionStorage.setItem("sys_onboarding_skipped", "1");
+});
+elements.btnOnboardingSkip.addEventListener("click", () => {
+  elements.onboardingModal.style.display = "none";
+  sessionStorage.setItem("sys_onboarding_skipped", "1");
+});
+elements.btnOnboardingConsent.addEventListener("click", () => {
+  triggerInstall("onboarding");
+});
+
+elements.btnInstallComponents.addEventListener("click", () => {
+  triggerInstall("settings");
+});
+elements.btnUninstallComponents.addEventListener("click", () => {
+  triggerUninstall();
+});
+
+elements.btnCloseMissing.addEventListener("click", () => {
+  elements.missingModal.style.display = "none";
+});
+elements.btnDismissMissing.addEventListener("click", () => {
+  elements.missingModal.style.display = "none";
+});
+elements.btnInstallFromMissing.addEventListener("click", () => {
+  elements.missingModal.style.display = "none";
+  elements.settingsModal.style.display = "flex";
+  triggerInstall("settings");
+});
+
+// Click outside modal card to close
+[elements.settingsModal, elements.onboardingModal, elements.missingModal].forEach(modal => {
+  if (modal) {
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) modal.style.display = "none";
+    });
+  }
+});
+
+refreshComponentStatus(true);
 
 // Formatting utilities
 function formatSeconds(secs) {
@@ -736,6 +1024,10 @@ elements.dropZone.addEventListener("drop", (e) => {
 // Start Processing
 elements.btnStartProcess.addEventListener("click", async () => {
   if (state.items.length === 0 || state.isProcessing) return;
+  if (!componentsAvailable) {
+    elements.missingModal.style.display = "flex";
+    return;
+  }
 
   state.isProcessing = true;
   elements.btnStartProcess.disabled = true;
@@ -836,7 +1128,7 @@ function startPollingProgress() {
 function stopProcessingUI() {
   state.isProcessing = false;
   if (state.pollTimer) clearInterval(state.pollTimer);
-  elements.btnStartProcess.disabled = false;
+  elements.btnStartProcess.disabled = state.items.length === 0;
   elements.btnCancelProcess.style.display = "none";
   elements.progressSpinner.style.display = "none";
 }

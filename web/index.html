@@ -48,8 +48,216 @@
           <span class="kofi-cup">☕</span>
           <span>Offri un caffè</span>
         </a>
+        <button type="button" class="btn-settings-header" id="btnSettings" title="Impostazioni componenti"
+          aria-label="Apri impostazioni componenti">
+          <span class="settings-gear">⚙️</span>
+          <span>Impostazioni</span>
+        </button>
       </div>
     </header>
+
+    <!-- Component Missing Banner Alert -->
+    <div class="component-alert-banner" id="componentAlert" role="alert" style="display: none;">
+      <div class="component-alert-content">
+        <span class="alert-icon">⚠️</span>
+        <span id="componentAlertText">Componenti necessari non disponibili.</span>
+      </div>
+      <button type="button" class="btn btn-sm btn-fluent" id="btnAlertOpenSettings">Configura Componenti</button>
+    </div>
+
+    <!-- Onboarding Wizard Modal -->
+    <div class="modal-backdrop" id="onboardingModal" style="display: none;">
+      <section class="modal-card onboarding-card" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+        <div class="card-header modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-title-icon">✨</span>
+            <div>
+              <h2 id="onboardingTitle">Benvenuto in SaveYourStorage</h2>
+              <p class="modal-subtitle">Configurazione iniziale componenti di sistema</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-subtle" id="btnCloseOnboarding" aria-label="Chiudi wizard">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="onboarding-notice">
+            <div class="notice-icon">📦</div>
+            <div class="notice-text">
+              <strong>Componenti multimediali FFmpeg & FFprobe richiesti</strong>
+              <p>
+                Per analizzare i metadati dei file, tagliare i video al millisecondo e comprimere video e foto
+                con la massima efficienza e qualità, SaveYourStorage si affida ai componenti open-source <strong>FFmpeg</strong> e <strong>FFprobe</strong>.
+              </p>
+            </div>
+          </div>
+
+          <div class="onboarding-consent-box">
+            <h4>🔒 Richiesta di consenso</h4>
+            <p>
+              Per permettere all'applicazione di funzionare correttamente, è necessario il tuo consenso per scaricare e configurare
+              questi componenti ufficiali nella cartella dati del tuo computer.
+            </p>
+            <p class="privacy-note">
+              🛡️ <strong>La tua privacy è protetta:</strong> Tutti i video e le immagini vengono elaborati interamente sul tuo PC locale,
+              senza inviare mai alcun dato o file multimediale su Internet.
+            </p>
+          </div>
+
+          <div class="component-list" id="onboardingComponentList">
+            <div class="component-row">
+              <div class="component-meta">
+                <strong>FFmpeg</strong>
+                <span class="component-sub">Motore di codifica e compressione video/audio ad alte prestazioni</span>
+                <span class="component-state-text" id="onboardingFfmpegStatus">In attesa di installazione</span>
+              </div>
+              <span class="component-indicator is-missing" id="onboardingFfmpegIndicator">●</span>
+            </div>
+            <div class="component-row">
+              <div class="component-meta">
+                <strong>FFprobe</strong>
+                <span class="component-sub">Analizzatore metadati, codec, bitrate e risoluzioni video</span>
+                <span class="component-state-text" id="onboardingFfprobeStatus">In attesa di installazione</span>
+              </div>
+              <span class="component-indicator is-missing" id="onboardingFfprobeIndicator">●</span>
+            </div>
+          </div>
+
+          <!-- Installation Progress -->
+          <div class="component-progress-box" id="onboardingProgressBox" style="display: none;">
+            <div class="progress-info-row">
+              <span id="onboardingProgressMsg">Inizializzazione...</span>
+              <strong id="onboardingProgressPct">0%</strong>
+            </div>
+            <div class="component-progress-track">
+              <div class="component-progress-fill" id="onboardingProgressFill"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-fluent-primary" id="btnOnboardingConsent">
+            Consenti e Installa Componenti
+          </button>
+          <button type="button" class="btn btn-subtle" id="btnOnboardingSkip">
+            Continua senza componenti
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-backdrop" id="settingsModal" style="display: none;">
+      <section class="modal-card settings-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="card-header modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-title-icon">⚙️</span>
+            <div>
+              <h2 id="settingsTitle">Impostazioni Componenti</h2>
+              <p class="modal-subtitle">Gestione di FFmpeg e FFprobe per l'elaborazione dei file</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-subtle" id="btnCloseSettings" aria-label="Chiudi impostazioni">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <p class="settings-intro">
+            FFmpeg e FFprobe sono indispensabili per leggere, tagliare e ottimizzare i file multimediali.
+            Puoi verificare il loro stato, reinstallarli o disinstallarli in qualsiasi momento.
+          </p>
+
+          <div class="component-list">
+            <div class="component-row" id="settingsFfmpegRow">
+              <div class="component-meta">
+                <div class="component-title-line">
+                  <strong>FFmpeg</strong>
+                  <span class="badge" id="ffmpegBadge">Verifica...</span>
+                </div>
+                <span class="component-path-text" id="ffmpegPath">Verifica in corso...</span>
+                <div class="component-warning-text" id="ffmpegWarning" style="display: none;">
+                  ⚠️ È necessaria la reinstallazione per il corretto funzionamento.
+                </div>
+              </div>
+              <span class="component-indicator" id="ffmpegIndicator">●</span>
+            </div>
+
+            <div class="component-row" id="settingsFfprobeRow">
+              <div class="component-meta">
+                <div class="component-title-line">
+                  <strong>FFprobe</strong>
+                  <span class="badge" id="ffprobeBadge">Verifica...</span>
+                </div>
+                <span class="component-path-text" id="ffprobePath">Verifica in corso...</span>
+                <div class="component-warning-text" id="ffprobeWarning" style="display: none;">
+                  ⚠️ È necessaria la reinstallazione per il corretto funzionamento.
+                </div>
+              </div>
+              <span class="component-indicator" id="ffprobeIndicator">●</span>
+            </div>
+          </div>
+
+          <!-- Settings Progress -->
+          <div class="component-progress-box" id="settingsProgressBox" style="display: none;">
+            <div class="progress-info-row">
+              <span id="settingsProgressMsg">Installazione in corso...</span>
+              <strong id="settingsProgressPct">0%</strong>
+            </div>
+            <div class="component-progress-track">
+              <div class="component-progress-fill" id="settingsProgressFill"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-fluent-primary" id="btnInstallComponents">
+            Installa / Reinstalla componenti
+          </button>
+          <button type="button" class="btn btn-danger-outline" id="btnUninstallComponents">
+            Disinstalla componenti
+          </button>
+        </div>
+        <p class="settings-footnote">
+          I componenti gestiti vengono scaricati nell'area dati locale (%LOCALAPPDATA%\SaveYourStorage\components).
+          FFmpeg è distribuito secondo le licenze indicate in THIRD-PARTY-NOTICES.
+        </p>
+      </section>
+    </div>
+
+    <!-- Missing Components Dialog (Alert on Process Start) -->
+    <div class="modal-backdrop" id="missingModal" style="display: none;">
+      <section class="modal-card missing-card" role="dialog" aria-modal="true" aria-labelledby="missingTitle">
+        <div class="card-header modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-title-icon is-warning">⚠️</span>
+            <div>
+              <h2 id="missingTitle">Componenti Necessari Assenti</h2>
+              <p class="modal-subtitle">Impossibile avviare l'elaborazione dei file</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-subtle" id="btnCloseMissing" aria-label="Chiudi avviso">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="missing-dialog-body">
+            <p>
+              I componenti <strong>FFmpeg</strong> e <strong>FFprobe</strong> risultano assenti o disinstallati.
+            </p>
+            <p class="subtle-desc">
+              Senza di essi SaveYourStorage non può leggere i formati video/foto né eseguire la compressione.
+              È necessaria la loro installazione per procedere.
+            </p>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-fluent-primary" id="btnInstallFromMissing">
+            Installa Componenti Ora
+          </button>
+          <button type="button" class="btn btn-subtle" id="btnDismissMissing">
+            Annulla
+          </button>
+        </div>
+      </section>
+    </div>
 
     <!-- Main Content Area -->
     <main class="fluent-main">

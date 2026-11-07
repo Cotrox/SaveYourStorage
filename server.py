@@ -15,9 +15,12 @@ import mimetypes
 import threading
 import subprocess
 import urllib.parse
+import urllib.request
+import zipfile
+import shutil
 from pathlib import Path
 from http import HTTPStatus
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
 from scanner import scan_target, format_size, VIDEO_EXTENSIONS, IMAGE_EXTENSIONS
 from engine import MediaEngine
@@ -31,10 +34,222 @@ else:
 WEB_DIR = BASE_DIR / "web"
 ASSETS_DIR = BASE_DIR / "assets"
 BIN_DIR = BASE_DIR / "bin"
+MANAGED_COMPONENTS_DIR = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "SaveYourStorage" / "components"
+FFMPEG_URL = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
 
 # Engine setup
 engine = MediaEngine()
 engine.locate_binaries()
+
+# Component installer state
+installer_lock = threading.Lock()
+installer_state = {
+    "is_installing": False,
+    "status": "idle",  # "idle" | "downloading" | "extracting" | "completed" | "error"
+    "progress": 0.0,
+    "downloaded_bytes": 0,
+    "total_bytes": 0,
+    "message": ""
+}
+
+def component_status():
+    binaries = engine.locate_binaries()
+    flag_file = MANAGED_COMPONENTS_DIR / "uninstalled.flag"
+    is_uninstalled = flag_file.exists() or binaries.get("uninstalled", False)
+
+    filename = lambda name: name + (".exe" if os.name == "nt" else "")
+    managed_ffmpeg = MANAGED_COMPONENTS_DIR / filename("ffmpeg")
+    managed_ffprobe = MANAGED_COMPONENTS_DIR / filename("ffprobe")
+    bundled_ffmpeg = BIN_DIR / filename("ffmpeg")
+    bundled_ffprobe = BIN_DIR / filename("ffprobe")
+
+    ffmpeg_installed = binaries["ffmpeg_available"] and not is_uninstalled
+    ffprobe_installed = binaries["ffprobe_available"] and not is_uninstalled
+    overall_available = binaries["available"] and not is_uninstalled
+
+    def get_source(candidate_path, managed_file, bundled_file, is_inst):
+        if not is_inst or not candidate_path:
+            return "missing"
+        try:
+            cand = Path(candidate_path).resolve()
+            if managed_file.exists() and cand == managed_file.resolve():
+                return "managed"
+            if bundled_file.exists() and cand == bundled_file.resolve():
+                return "bundled"
+        except Exception:
+            pass
+        return "system"
+
+    with installer_lock:
+        inst_copy = dict(installer_state)
+
+    return {
+        "available": overall_available,
+        "is_uninstalled": is_uninstalled,
+        "ffmpeg": {
+            "installed": ffmpeg_installed,
+            "path": binaries["ffmpeg"] if ffmpeg_installed else "",
+            "source": get_source(binaries["ffmpeg"], managed_ffmpeg, bundled_ffmpeg, ffmpeg_installed),
+        },
+        "ffprobe": {
+            "installed": ffprobe_installed,
+            "path": binaries["ffprobe"] if ffprobe_installed else "",
+            "source": get_source(binaries["ffprobe"], managed_ffprobe, bundled_ffprobe, ffprobe_installed),
+        },
+        "can_install": True,
+        "installer": inst_copy
+    }
+
+def install_worker(force_download=False):
+    global installer_state
+    filename = lambda name: name + (".exe" if os.name == "nt" else "")
+    MANAGED_COMPONENTS_DIR.mkdir(parents=True, exist_ok=True)
+    archive_path = MANAGED_COMPONENTS_DIR / "ffmpeg_download.zip"
+
+    with installer_lock:
+        installer_state["is_installing"] = True
+        installer_state["status"] = "downloading"
+        installer_state["progress"] = 0.0
+        installer_state["downloaded_bytes"] = 0
+        installer_state["total_bytes"] = 0
+        installer_state["message"] = "Inizializzazione installazione..."
+
+    try:
+        # Clear uninstalled flag
+        flag_file = MANAGED_COMPONENTS_DIR / "uninstalled.flag"
+        if flag_file.exists():
+            flag_file.unlink(missing_ok=True)
+
+        target_ffmpeg = MANAGED_COMPONENTS_DIR / filename("ffmpeg")
+        target_ffprobe = MANAGED_COMPONENTS_DIR / filename("ffprobe")
+        bundled_ffmpeg = BIN_DIR / filename("ffmpeg")
+        bundled_ffprobe = BIN_DIR / filename("ffprobe")
+
+        # Fast path: copy from bundled bin/ if present and not force_download
+        if not force_download:
+            if target_ffmpeg.exists() and target_ffprobe.exists():
+                with installer_lock:
+                    installer_state["progress"] = 100.0
+                    installer_state["status"] = "completed"
+                    installer_state["message"] = "Componenti già disponibili e riattivati!"
+                engine.locate_binaries()
+                return
+
+            if bundled_ffmpeg.exists() and bundled_ffprobe.exists():
+                with installer_lock:
+                    installer_state["message"] = "Copia dei componenti integrati..."
+                    installer_state["progress"] = 40.0
+                shutil.copy2(bundled_ffmpeg, target_ffmpeg)
+                with installer_lock:
+                    installer_state["progress"] = 80.0
+                shutil.copy2(bundled_ffprobe, target_ffprobe)
+                with installer_lock:
+                    installer_state["progress"] = 100.0
+                    installer_state["status"] = "completed"
+                    installer_state["message"] = "Componenti integrati configurati con successo!"
+                engine.locate_binaries()
+                return
+
+        # Download from GitHub release
+        with installer_lock:
+            installer_state["message"] = "Connessione ai server GitHub per FFmpeg..."
+            installer_state["progress"] = 5.0
+
+        req = urllib.request.Request(
+            FFMPEG_URL,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SaveYourStorage/1.0"
+            }
+        )
+
+        with urllib.request.urlopen(req, timeout=30) as resp, open(archive_path, "wb") as f_out:
+            total_size = int(resp.headers.get("Content-Length", 0))
+            with installer_lock:
+                installer_state["total_bytes"] = total_size
+            downloaded = 0
+            chunk_size = 65536
+            while True:
+                chunk = resp.read(chunk_size)
+                if not chunk:
+                    break
+                f_out.write(chunk)
+                downloaded += len(chunk)
+                if total_size > 0:
+                    pct = round(downloaded / total_size * 100.0, 1)
+                    with installer_lock:
+                        installer_state["downloaded_bytes"] = downloaded
+                        installer_state["progress"] = min(90.0, pct * 0.9)
+                        installer_state["message"] = f"Download: {pct:.0f}% ({format_size(downloaded)} di {format_size(total_size)})"
+
+        with installer_lock:
+            installer_state["status"] = "extracting"
+            installer_state["progress"] = 92.0
+            installer_state["message"] = "Estrazione ed installazione dei componenti..."
+
+        extracted = set()
+        with zipfile.ZipFile(archive_path) as archive:
+            for member in archive.infolist():
+                name = Path(member.filename).name.lower()
+                if name in {"ffmpeg.exe", "ffprobe.exe", "ffmpeg", "ffprobe"}:
+                    destination = MANAGED_COMPONENTS_DIR / name
+                    with archive.open(member) as src, open(destination, "wb") as tgt:
+                        shutil.copyfileobj(src, tgt)
+                    extracted.add(name)
+
+        if archive_path.exists():
+            archive_path.unlink(missing_ok=True)
+
+        needed = {"ffmpeg.exe", "ffprobe.exe"} if os.name == 'nt' else {"ffmpeg", "ffprobe"}
+        if not needed.issubset(extracted):
+            raise RuntimeError("L'archivio scaricato non contiene entrambi i componenti necessari (FFmpeg e FFprobe).")
+
+        with installer_lock:
+            installer_state["progress"] = 100.0
+            installer_state["status"] = "completed"
+            installer_state["message"] = "Installazione completata con successo! Componenti pronti."
+
+        engine.locate_binaries()
+
+    except Exception as exc:
+        with installer_lock:
+            installer_state["status"] = "error"
+            installer_state["message"] = f"Errore durante l'installazione: {exc}"
+        if archive_path.exists():
+            archive_path.unlink(missing_ok=True)
+    finally:
+        with installer_lock:
+            installer_state["is_installing"] = False
+
+def start_install_components(force_download=False):
+    with installer_lock:
+        if installer_state["is_installing"]:
+            return False
+    t = threading.Thread(target=install_worker, args=(force_download,), daemon=True)
+    t.start()
+    return True
+
+def uninstall_components():
+    MANAGED_COMPONENTS_DIR.mkdir(parents=True, exist_ok=True)
+    flag_file = MANAGED_COMPONENTS_DIR / "uninstalled.flag"
+    flag_file.touch(exist_ok=True)
+
+    filename = lambda name: name + (".exe" if os.name == "nt" else "")
+    for name in (filename("ffmpeg"), filename("ffprobe")):
+        target = MANAGED_COMPONENTS_DIR / name
+        if target.exists():
+            try:
+                target.unlink()
+            except OSError as exc:
+                raise RuntimeError(f"Impossibile rimuovere {name}: {exc}") from exc
+
+    with installer_lock:
+        installer_state["is_installing"] = False
+        installer_state["status"] = "idle"
+        installer_state["progress"] = 0.0
+        installer_state["message"] = ""
+
+    engine.locate_binaries()
+    return component_status()
 
 # Processing State Manager
 class ProcessManager:
@@ -238,13 +453,8 @@ class SaveYourStorageHTTPHandler(BaseHTTPRequestHandler):
         if path == "/api/status":
             return self.send_json(manager.get_status())
 
-        if path == "/api/system-info":
-            binaries = engine.locate_binaries()
-            return self.send_json({
-                "ffmpeg_available": binaries["available"],
-                "ffmpeg_path": binaries["ffmpeg"],
-                "ffprobe_path": binaries["ffprobe"]
-            })
+        if path == "/api/system-info" or path == "/api/install-status":
+            return self.send_json(component_status())
 
         if path == "/media-preview":
             raw_path = query.get("path", [""])[0]
@@ -402,6 +612,19 @@ class SaveYourStorageHTTPHandler(BaseHTTPRequestHandler):
             webbrowser.open("https://ko-fi.com/cotrox")
             return self.send_json({"success": True})
 
+        elif path == "/api/install-components":
+            force = body.get("force_download", False)
+            started = start_install_components(force_download=force)
+            return self.send_json({"started": started, "components": component_status()})
+
+        elif path == "/api/uninstall-components":
+            if manager.is_running:
+                return self.send_json({"error": "Arresta l'elaborazione prima di rimuovere i componenti."}, status_code=409)
+            try:
+                return self.send_json({"status": "uninstalled", "components": uninstall_components()})
+            except Exception as exc:
+                return self.send_json({"error": f"Rimozione componenti fallita: {exc}"}, status_code=500)
+
         elif path == "/api/upload-stream":
             query = urllib.parse.parse_qs(parsed.query)
             filename = query.get("name", ["dropped_media"])[0]
@@ -436,6 +659,10 @@ class SaveYourStorageHTTPHandler(BaseHTTPRequestHandler):
                 return self.send_json({"error": str(e)}, status_code=400)
 
         elif path == "/api/process":
+            if not component_status()["available"]:
+                return self.send_json({
+                    "error": "FFmpeg e FFprobe sono necessari per elaborare i file. Reinstallali dalle Impostazioni."
+                }, status_code=412)
             if manager.is_running:
                 return self.send_json({"error": "Un'elaborazione è già in corso"}, status_code=409)
 
@@ -467,7 +694,7 @@ class SaveYourStorageHTTPHandler(BaseHTTPRequestHandler):
 
 def run_server(port=5678):
     server_address = ('127.0.0.1', port)
-    httpd = HTTPServer(server_address, SaveYourStorageHTTPHandler)
+    httpd = ThreadingHTTPServer(server_address, SaveYourStorageHTTPHandler)
     print(f"[SaveYourStorage] Server desktop attivo su http://127.0.0.1:{port}")
     httpd.serve_forever()
 

@@ -87,6 +87,13 @@ SaveYourStorage/
 
 ## 🚀 Come Avviare l'Applicazione
 
+L'eseguibile portabile contiene già FFmpeg e FFprobe: chi scarica ed esegue
+`dist\SaveYourStorage\SaveYourStorage.exe` non deve installare manualmente
+questi componenti. Al primo avvio l'app ne verifica comunque la presenza.
+Dall'icona ⚙️ in alto a destra è possibile aprire le impostazioni, reinstallare
+i componenti con il consenso dell'utente oppure rimuoverli. Se non sono
+disponibili, l'app mostra un avviso e impedisce l'avvio dell'elaborazione.
+
 ### Metodo 1: Avvio Rapido (.bat) — Consigliato
 Fai doppio click su:
 ```bat

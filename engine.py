@@ -46,28 +46,56 @@ class MediaEngine:
         self.cancel_requested = False
 
     def locate_binaries(self):
-        """Finds ffmpeg and ffprobe from local bin/ or system PATH."""
+        """Finds FFmpeg and FFprobe from managed, bundled, or system locations."""
         if getattr(sys, 'frozen', False):
             base_dir = Path(sys._MEIPASS)
         else:
             base_dir = Path(__file__).resolve().parent
-        local_ffmpeg = base_dir / "bin" / ("ffmpeg.exe" if os.name == 'nt' else "ffmpeg")
-        local_ffprobe = base_dir / "bin" / ("ffprobe.exe" if os.name == 'nt' else "ffprobe")
+        filename = lambda name: name + (".exe" if os.name == "nt" else "")
+        managed_dir = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "SaveYourStorage" / "components"
+        
+        # If components have been explicitly uninstalled/deactivated by user
+        flag_file = managed_dir / "uninstalled.flag"
+        if flag_file.exists():
+            self.ffmpeg_bin = ""
+            self.ffprobe_bin = ""
+            return {
+                "ffmpeg": "",
+                "ffprobe": "",
+                "ffmpeg_available": False,
+                "ffprobe_available": False,
+                "available": False,
+                "uninstalled": True
+            }
 
-        if local_ffmpeg.exists():
-            self.ffmpeg_bin = str(local_ffmpeg)
-        elif shutil.which("ffmpeg"):
-            self.ffmpeg_bin = shutil.which("ffmpeg")
+        locations = (managed_dir, base_dir / "bin")
 
-        if local_ffprobe.exists():
-            self.ffprobe_bin = str(local_ffprobe)
-        elif shutil.which("ffprobe"):
-            self.ffprobe_bin = shutil.which("ffprobe")
+        for directory in locations:
+            candidate = directory / filename("ffmpeg")
+            if candidate.exists():
+                self.ffmpeg_bin = str(candidate)
+                break
+        else:
+            self.ffmpeg_bin = shutil.which("ffmpeg") or "ffmpeg"
+
+        for directory in locations:
+            candidate = directory / filename("ffprobe")
+            if candidate.exists():
+                self.ffprobe_bin = str(candidate)
+                break
+        else:
+            self.ffprobe_bin = shutil.which("ffprobe") or "ffprobe"
+
+        ffmpeg_ok = bool((Path(self.ffmpeg_bin).is_file()) or (self.ffmpeg_bin != "ffmpeg" and shutil.which(self.ffmpeg_bin)))
+        ffprobe_ok = bool((Path(self.ffprobe_bin).is_file()) or (self.ffprobe_bin != "ffprobe" and shutil.which(self.ffprobe_bin)))
 
         return {
-            "ffmpeg": self.ffmpeg_bin,
-            "ffprobe": self.ffprobe_bin,
-            "available": bool(shutil.which(self.ffmpeg_bin) or Path(self.ffmpeg_bin).exists())
+            "ffmpeg": self.ffmpeg_bin if ffmpeg_ok else "",
+            "ffprobe": self.ffprobe_bin if ffprobe_ok else "",
+            "ffmpeg_available": ffmpeg_ok,
+            "ffprobe_available": ffprobe_ok,
+            "available": bool(ffmpeg_ok and ffprobe_ok),
+            "uninstalled": False
         }
 
     def cancel(self):
