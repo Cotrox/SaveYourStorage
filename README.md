@@ -1,6 +1,16 @@
-# 🚀 SaveYourStorage — Media Optimizer & Video Trimmer Desktop (WinUI 3)
-
-[![Support Giuseppe Antonino Cotroneo on Ko-Fi](https://img.shields.io/badge/Ko--Fi-Support%20Giuseppe%20Antonino%20Cotroneo-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/cotrox)
+<div align="center">
+  <img src="assets/cotrox-avatar.png" alt="Avatar di Giuseppe Antonino Cotroneo" width="128" height="128">
+  <h1>🚀 SaveYourStorage</h1>
+  <p>Media Optimizer & Video Trimmer Desktop (WinUI 3)</p>
+  <p>
+    <a href="https://ko-fi.com/cotrox">
+      <img src="https://img.shields.io/badge/Ko--fi-Supporta%20il%20progetto-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Supporta su Ko-fi">
+    </a>
+    <a href="https://www.paypal.com/paypalme/graficarulez">
+      <img src="https://img.shields.io/badge/PayPal-Supporta%20il%20progetto-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="Supporta su PayPal">
+    </a>
+  </p>
+</div>
 
 Un software desktop moderno, minimale e ad alte prestazioni per Windows con estetica **WinUI 3 / Fluent Design**. Progettato da **Giuseppe Antonino Cotroneo** per ottimizzare, velocizzare, tagliare e convertire video e immagini in sicurezza, riducendo drasticamente lo spazio occupato su disco senza perdite qualitative percettibili (*visually lossless*).
 
