@@ -23,3 +23,6 @@ packaging/output/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local maintenance notes
+directives.md

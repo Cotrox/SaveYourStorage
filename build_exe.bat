@@ -21,6 +21,12 @@ if exist "dist\SaveYourStorage" (
     if errorlevel 1 goto :build_error
 )
 
+if exist "build\SaveYourStorage" (
+    echo [INFO] Rimozione degli artefatti temporanei...
+    rmdir /s /q "build\SaveYourStorage"
+    if errorlevel 1 goto :build_error
+)
+
 echo [INFO] Compilazione in corso con PyInstaller...
 python -m PyInstaller --noconfirm --clean --onedir --windowed ^
     --name "SaveYourStorage" ^
@@ -35,6 +41,7 @@ python -m PyInstaller --noconfirm --clean --onedir --windowed ^
 if errorlevel 1 goto :build_error
 
 if exist "dist\SaveYourStorage\SaveYourStorage.exe" (
+    rmdir /s /q "build\SaveYourStorage" 2>nul
     echo.
     echo ========================================================
     echo  COMPILAZIONE COMPLETATA CON SUCCESSO!
@@ -51,5 +58,3 @@ echo.
 echo [ERRORE] Compilazione fallita. Controlla gli errori riportati sopra.
 pause
 exit /b 1
-
-pause

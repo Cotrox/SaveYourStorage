@@ -137,6 +137,16 @@ Prima dell'invio allo Store occorre completare la scheda Partner Center,
 verificare la firma e caricare le informazioni sulla privacy e sulla licenza di
 FFmpeg riportate in `THIRD-PARTY-NOTICES`.
 
+## 📚 Contribuire e licenza
+
+- **`CONTRIBUTING.md`** è la guida per chi vuole contribuire al progetto:
+  descrive come preparare l'ambiente, avviare l'app e verificare una modifica
+  creando la build.
+- **`LICENSE`** contiene i termini legali con cui il codice può essere usato,
+  copiato, modificato e distribuito. Il codice del progetto è rilasciato con
+  licenza MIT; le dipendenze esterne, come FFmpeg, mantengono le proprie
+  licenze riportate in `THIRD-PARTY-NOTICES`.
+
 ## 👨‍💻 Autore & Crediti
 
 - **Autore**: **Giuseppe Antonino Cotroneo** (`@Cotrox`)
